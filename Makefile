@@ -3,7 +3,7 @@ ASPARAMS = --32
 LDPARAMS = -melf_i386 -no-pie
 
 # object files
-objects = loader.o kernel.o
+objects = loader.o kernel.o port.o gdt.o interrupts.o asm_interrupts.o
 
 %.o: %.cpp
 	g++ ${GPPPARAMS} -o $@ -c $<
@@ -14,8 +14,8 @@ objects = loader.o kernel.o
 mykernel.bin: linker.ld ${objects}
 	ld ${LDPARAMS} -T $< -o $@ ${objects}
 
-install: mykernel.bin
-	sudo cp $< /boot/mykernel.bin
+# install: mykernel.bin
+# 	sudo cp $< /boot/mykernel.bin
 
 mykernel.iso: mykernel.bin
 	mkdir iso
@@ -31,5 +31,6 @@ mykernel.iso: mykernel.bin
 	grub-mkrescue --output=$@ iso
 	rm -rf iso
 
+.PHONY: clean
 clean:
-	rm kernel.o loader.o mykernel.bin mykernel.iso
+	rm ${objects}

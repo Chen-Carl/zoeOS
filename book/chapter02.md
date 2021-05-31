@@ -65,7 +65,7 @@ Limit, Base, type都分拆为多个部分存储，其中16~19位的Limit字段�
 
 ### GlobalDescriptorTable类
 
-GDT中包含了4个基本的段，分别是空段、未使用段、代码段和数据段。同时定义了两个函数`CodeSegmentDescriptor`和`DataSegmentDescriptor`返回代码段和数据段相对于GDT表地址的偏移量。
+GDT中包含了4个基本的段，分别是空段、未使用段、代码段和数据段。同时定义了两个函数`getCodeSegmentSelector`和`getDataSegmentSelector`返回代码段和数据段相对于GDT表地址的偏移量。由于描述符都是8字节的，因此这个偏移量的后3位恒为0。实际上，这个偏移量的高11位是段选择子的高11位，我们这里返回段选择子的高11位的内容。
 
 ``` cpp
 // os/gdt.h
@@ -103,8 +103,8 @@ public:
     GlobalDescriptorTable();
     ~GlobalDescriptorTable();
 
-    uint16_t CodeSegmentDescriptor();
-    uint16_t DataSegmentDescriptor();
+    uint16_t getCodeSegmentSelector();
+    uint16_t getDataSegmentSelector();
 }
 
 #endif
@@ -271,14 +271,14 @@ GlobalDescriptorTable::GlobalDescriptorTable()
 
 GlobalDescriptorTable::~GlobalDescriptorTable() { }
 
-uint16_t GlobalDescriptorTable::DataSegmentDescriptor()
+uint16_t GlobalDescriptorTable::getDataSegmentSelector()
 {
-    return (uint8_t *)&dataSegmentDescriptor - (uint8_t *)this;
+    return ((uint8_t *)&dataSegmentDescriptor - (uint8_t *)this) >> 3;
 }
 
-uint16_t GlobalDescriptorTable::CodeSegmentDescriptor()
+uint16_t GlobalDescriptorTable::getCodeSegmentSelector()
 {
-    return (uint8_t *)&codeSegmentDescriptor - (uint8_t *)this;
+    return ((uint8_t *)&codeSegmentDescriptor - (uint8_t *)this) >> 3;
 }
 ```
 

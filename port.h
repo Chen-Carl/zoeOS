@@ -3,26 +3,42 @@
 
 #include "types.h"
 
-template <class T>
-class Port
-{
-public:
+class Port {
+protected:
+    uint16_t portnumber;
     Port(uint16_t portnumber);
     ~Port();
-    virtual void write(T data);
-    virtual T read();
-protected:
-    uint16_t m_portnumber;
 };
 
-template <class T>
-class PortSlow : public Port<T>
-{
+class Port8Bit : public Port {
 public:
-    PortSlow(uint16_t portnumber);
-    ~PortSlow();
-    virtual void write(T data);
-    virtual T read();
+    Port8Bit(uint16_t portnumber);
+    ~Port8Bit();
+    virtual void write(uint8_t data);
+    virtual uint8_t read();
+};
+
+class Port8BitSlow : public Port8Bit {
+public:
+    Port8BitSlow(uint16_t portnumber);
+    ~Port8BitSlow();
+    virtual void write(uint8_t data);
+};
+
+class Port16Bit : public Port {
+public:
+    Port16Bit(uint16_t portnumber);
+    ~Port16Bit();
+    virtual void write(uint16_t data);
+    virtual uint16_t read();
+};
+
+class Port32Bit : public Port {
+public:
+    Port32Bit(uint16_t portnumber);
+    ~Port32Bit();
+    virtual void write(uint32_t data);
+    virtual uint32_t read();
 };
 
 #endif

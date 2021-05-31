@@ -33,8 +33,8 @@ public:
     GlobalDescriptorTable();
     ~GlobalDescriptorTable();
 
-    uint16_t CodeSegmentDescriptor();
-    uint16_t DataSegmentDescriptor();
+    uint16_t getCodeSegmentSelector();
+    uint16_t getDataSegmentSelector();
 };
 
 #endif
