@@ -5,12 +5,16 @@
 #include "port.h"
 #include "gdt.h"
 
+class InterruptRoutine;
+
 class InterruptManager
 {
+    friend class InterruptRoutine;
 public:
     InterruptManager(uint16_t hardwareInterruptOffset_, GlobalDescriptorTable *gdt);
     ~InterruptManager();
     void activate();
+    void deactivate();
 
 private:
     struct GateDescriptor
@@ -74,8 +78,13 @@ private:
     static void HandleException0x12();
     static void HandleException0x13();
     
+    static InterruptManager *activeInterruptManager;
+
+    uint32_t handleInt(uint8_t interruptNumber, uint32_t esp);
+
     uint16_t hardwareInterruptOffset;
     static GateDescriptor IDT[256];
+    InterruptRoutine* routines[256];
 
     Port8BitSlow priCommand;
     Port8BitSlow priData;
@@ -83,13 +92,14 @@ private:
     Port8BitSlow semiData;
 };
 
-class InterruptHandler {
+class InterruptRoutine
+{
 public:
-    uint32_t HandleInterrupt(uint32_t esp);
-    
+    uint32_t routine(uint32_t esp);
+
 protected:
-    InterruptHandler(uint8_t interruptNumber, InterruptManager* interruptManager);
-    ~InterruptHandler();
+    InterruptRoutine(uint8_t interruptNumber, InterruptManager* interruptManager);
+    ~InterruptRoutine();
 
     uint8_t interruptNumber;
     InterruptManager* interruptManager;

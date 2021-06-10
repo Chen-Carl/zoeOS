@@ -3,6 +3,7 @@
 void printf(const char*);
 
 InterruptManager::GateDescriptor InterruptManager::IDT[256];
+InterruptManager *InterruptManager::activeInterruptManager = nullptr;
 
 InterruptManager::InterruptManager(uint16_t hardwareInterruptOffset_, GlobalDescriptorTable *gdt) : priCommand(0x20), priData(0x21), semiCommand(0xA0), semiData(0xA1)
 {
@@ -12,6 +13,7 @@ InterruptManager::InterruptManager(uint16_t hardwareInterruptOffset_, GlobalDesc
 
     for (uint16_t i = 0; i < 256; i++)
     {
+        routines[i] = nullptr;
         setGateDescriptor(i, codeSegment, &interruptIgnore, 0, __IDT_INTERRUPT_GATE_TYPE_);
     }
 
@@ -89,8 +91,11 @@ InterruptManager::~InterruptManager() {}
 
 uint32_t InterruptManager::handleInterrupt(uint8_t interruptNumber, uint32_t esp) 
 { 
-    printf("interrupt");
-    return esp; 
+    if (activeInterruptManager)
+    {
+        return activeInterruptManager->handleInt(interruptNumber, esp);
+    }
+    return esp;
 }
 
 void InterruptManager::setGateDescriptor(uint8_t interruptNumber, uint16_t codeSegmentSelector_, void (*handle)(), uint8_t DPL, uint8_t type)
@@ -104,5 +109,64 @@ void InterruptManager::setGateDescriptor(uint8_t interruptNumber, uint16_t codeS
 
 void InterruptManager::activate()
 {
+    if (activeInterruptManager != nullptr)
+    {
+        activeInterruptManager->deactivate();
+    }
+    activeInterruptManager = this;
     asm volatile("sti");
+}
+
+void InterruptManager::deactivate()
+{
+    if (activeInterruptManager == this)
+    {
+        activeInterruptManager = nullptr;
+        asm volatile("cli");
+    }
+}
+
+uint32_t InterruptManager::handleInt(uint8_t interruptNumber, uint32_t esp)
+{
+    if (routines[interruptNumber])
+    {
+        esp = routines[interruptNumber]->routine(esp);
+    }
+    else if (interruptNumber != hardwareInterruptOffset)
+    {
+        char *msg = (char *)"unprocessed interrupt 0x00";
+        const char *hex = "0123456789ABCDEF";
+        msg[24] = hex[(interruptNumber >> 4) & 0x0f];
+        msg[25] = hex[interruptNumber & 0x0f];
+        printf(msg);
+    }
+    if (interruptNumber >= hardwareInterruptOffset && interruptNumber < hardwareInterruptOffset + 16)
+    {
+        priCommand.write(0x20);
+        if (interruptNumber >= hardwareInterruptOffset + 8)
+        {
+            semiCommand.write(0x20);
+        }
+    }
+    return esp; 
+}
+
+InterruptRoutine::InterruptRoutine(uint8_t interruptNumber_, InterruptManager* interruptManager_) 
+{
+    interruptNumber = interruptNumber_;
+    interruptManager = interruptManager_;
+    interruptManager->routines[interruptNumber] = this;
+}
+
+InterruptRoutine::~InterruptRoutine() 
+{
+    if (interruptManager->routines[interruptNumber] == this) 
+    {
+        interruptManager->routines[interruptNumber] = nullptr;
+    }
+}
+
+uint32_t InterruptRoutine::routine(uint32_t esp)
+{
+    return esp;
 }

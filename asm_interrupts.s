@@ -74,8 +74,8 @@ int_bottom:
     popl %ds
     popa
 
-.global __ZN16InterruptManager15interruptIgnoreEv
-    __ZN16InterruptManager15interruptIgnoreEv:
+; .global __ZN16InterruptManager15interruptIgnoreEv
+;     __ZN16InterruptManager15interruptIgnoreEv:
 
     iret
 
