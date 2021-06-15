@@ -134,7 +134,7 @@ uint32_t InterruptManager::handleInt(uint8_t interruptNumber, uint32_t esp)
     }
     else if (interruptNumber != hardwareInterruptOffset)
     {
-        char *msg = (char *)"unprocessed interrupt 0x00";
+        char *msg = (char *)"unprocessed interrupt 0x00\n";
         const char *hex = "0123456789ABCDEF";
         msg[24] = hex[(interruptNumber >> 4) & 0x0f];
         msg[25] = hex[interruptNumber & 0x0f];

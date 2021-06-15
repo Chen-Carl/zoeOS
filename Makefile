@@ -3,7 +3,7 @@ ASPARAMS = --32
 LDPARAMS = -melf_i386 -no-pie
 
 # object files
-objects = loader.o kernel.o port.o gdt.o interrupts.o asm_interrupts.o
+objects = loader.o kernel.o port.o gdt.o interrupts.o asm_interrupts.o keyboard.o mouse.o
 
 %.o: %.cpp
 	g++ ${GPPPARAMS} -o $@ -c $<

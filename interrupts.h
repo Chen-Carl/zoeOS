@@ -15,6 +15,7 @@ public:
     ~InterruptManager();
     void activate();
     void deactivate();
+    uint16_t getOffset() const { return hardwareInterruptOffset; }
 
 private:
     struct GateDescriptor
@@ -95,12 +96,11 @@ private:
 class InterruptRoutine
 {
 public:
-    uint32_t routine(uint32_t esp);
-
-protected:
+    virtual uint32_t routine(uint32_t esp);
     InterruptRoutine(uint8_t interruptNumber, InterruptManager* interruptManager);
     ~InterruptRoutine();
 
+protected:
     uint8_t interruptNumber;
     InterruptManager* interruptManager;
 };

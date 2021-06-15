@@ -1,6 +1,8 @@
 #include "types.h"
 #include "gdt.h"
 #include "interrupts.h"
+#include "keyboard.h"
+#include "mouse.h"
 
 void printf(const char *str)
 {
@@ -45,6 +47,8 @@ void kernelMain(void *multiboot_structure, uint32_t magicnumber)
     printf("hello myos\n");
     GlobalDescriptorTable gdt;
     InterruptManager interrupts(0x20, &gdt);
+    KeyboardDriver keyboard(&interrupts);
+    MouseDriver mouse(&interrupts);
     interrupts.activate();
     while (1);
 }
