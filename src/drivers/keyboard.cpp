@@ -1,11 +1,24 @@
-#include "keyboard.h"
+#include "drivers/keyboard.h"
 
 void printf(const char *);
+
+using namespace zoeos::drivers;
+using namespace zoeos::common;
+using namespace zoeos::hardwareCommunication;
 
 KeyboardDriver::KeyboardDriver(InterruptManager *manager)
     : InterruptRoutine(0x01 + manager->getOffset(), manager),
       dataPort(0x60),
       commandPort(0x64)
+{
+    
+}
+
+KeyboardDriver::~KeyboardDriver()
+{
+}
+
+void KeyboardDriver::activate()
 {
     while (commandPort.read() & 0x1)
     {
@@ -17,10 +30,6 @@ KeyboardDriver::KeyboardDriver(InterruptManager *manager)
     commandPort.write(0x60);
     dataPort.write(status);
     dataPort.write(0xf4);
-}
-
-KeyboardDriver::~KeyboardDriver()
-{
 }
 
 uint32_t KeyboardDriver::routine(uint32_t esp)
