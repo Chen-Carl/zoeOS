@@ -530,3 +530,27 @@ void kernelMain(void *multiboot_structure, uint32_t magicnumber)
     while (1);
 }
 ```
+
+最后，修改工作区的目录结构为
+```
+include
+|
+--- common
+|   |
+|   --- types.h
+--- drivers
+|   |
+|   --- driver.h
+|   |
+|   --- keyboard.h
+|   |
+|   --- mouse.h
+--- hardwareCommunication
+|   |
+|   --- interrupts.h
+|   |
+|   --- port.h
+--- gdt.h
+```
+
+另外，还修改了头文件路径、Makefile路径以及汇编代码中的函数名称粉碎。完整的代码请见git仓库`v1.5 代码重构`版本。
