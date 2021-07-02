@@ -10,15 +10,6 @@ namespace zoeos
 
 namespace hardwareCommunication
 {
-    using common::uint8_t;
-    using common::uint16_t;
-    using common::uint32_t;
-    using common::uint64_t;
-    using common::int8_t;
-    using common::int16_t;
-    using common::int32_t;
-    using common::int64_t;
-    
     class InterruptRoutine;
 
     class InterruptManager
