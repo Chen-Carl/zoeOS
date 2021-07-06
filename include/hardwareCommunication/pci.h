@@ -37,6 +37,8 @@ namespace hardwareCommunication
                 uint8_t subclass_, uint8_t progIF_, 
                 uint8_t revision_, uint32_t interrupt_, uint32_t portBase_ = 0);
         ~PciConfigSpace();
+        uint32_t getInterruptNum() const { return interrupt; }
+        uint32_t getPortBase() const { return portBase; }
 
     private:
         uint32_t portBase;

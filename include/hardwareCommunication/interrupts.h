@@ -4,6 +4,7 @@
 #include "common/types.h"
 #include "port.h"
 #include "gdt.h"
+#include "multitask.h"
 
 namespace zoeos
 {
@@ -16,7 +17,7 @@ namespace hardwareCommunication
     {
         friend class InterruptRoutine;
     public:
-        InterruptManager(uint16_t hardwareInterruptOffset_, GlobalDescriptorTable *gdt);
+        InterruptManager(uint16_t hardwareInterruptOffset_, GlobalDescriptorTable *gdt, TaskManager *taskManager);
         ~InterruptManager();
         void activate();
         void deactivate();
@@ -91,6 +92,7 @@ namespace hardwareCommunication
         uint16_t hardwareInterruptOffset;
         static GateDescriptor IDT[256];
         InterruptRoutine* routines[256];
+        TaskManager *taskManager;
 
         Port8BitSlow priCommand;
         Port8BitSlow priData;

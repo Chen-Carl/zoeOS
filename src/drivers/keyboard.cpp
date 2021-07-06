@@ -80,7 +80,7 @@ uint32_t KeyboardDriver::routine(uint32_t esp)
         XX(25, K, k);
         XX(26, L, l);
 
-        XX(2C, Y, y);
+        XX(2C, Z, z);
         XX(2D, X, x);
         XX(2E, C, c);
         XX(2F, V, v);

@@ -2,6 +2,7 @@
 #include "common/types.h"
 
 using namespace zoeos::drivers;
+using namespace zoeos::common;
 
 Driver::Driver()
 {

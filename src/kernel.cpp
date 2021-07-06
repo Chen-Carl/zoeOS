@@ -5,6 +5,8 @@
 #include "drivers/mouse.h"
 #include "drivers/driver.h"
 #include "hardwareCommunication/pci.h"
+#include "multitask.h"
+#include "memoryManager.h"
 
 using namespace zoeos;
 using namespace zoeos::drivers;
@@ -12,6 +14,8 @@ using namespace zoeos::hardwareCommunication;
 
 void printf(const char *str);
 void printHex(uint8_t);
+void fTask1();
+void fTask2();
 
 // screen address
 static uint16_t *VideoMemory = (uint16_t*)0xb8000;
@@ -58,22 +62,65 @@ void printf(const char *str)
     }
 }
 
+void fTask1()
+{
+    while (1)
+    {
+        printf("A");
+    }
+}
+
+void fTask2()
+{
+    while (1)
+    {
+        printf("B");
+    }
+}
+
 void kernelMain(void *multiboot_structure, uint32_t magicnumber)
 {
     printf("hello world\n");
     printf("hello myos\n");
     GlobalDescriptorTable gdt;
+
+    size_t heap = 10 * 1024 * 1024;
+    uint32_t *memupper = (uint32_t*)((size_t)multiboot_structure + 8);
+    MemoryManager memoryManager(heap, (*memupper) * 1024 - heap - 10 * 1024);
+
+    TaskManager taskManager;
+    // Task task1(&gdt, fTask1);
+    // Task task2(&gdt, fTask2);
+    // taskManager.addTask(&task1);
+    // taskManager.addTask(&task2);
+
+    InterruptManager interrupts(0x20, &gdt, &taskManager);
     DriverManager drvManager;
-    InterruptManager interrupts(0x20, &gdt);
 
     KeyboardDriver keyboard(&interrupts);
     drvManager.addDriver(&keyboard);
+
     MouseDriver mouse(&interrupts);
     drvManager.addDriver(&mouse);
+
     PciController PCI;
     PCI.checkBuses(&drvManager, &interrupts);
     drvManager.activeAll();
     interrupts.activate();
+
+    printf("------------- test allocate --------------\n");
+    printHex((heap >> 24) & 0xff);
+    printHex((heap >> 16) & 0xff);
+    printHex((heap >> 8) & 0xff);
+    printHex(heap & 0xff);
+    void *allocated = memoryManager.malloc(1024);
+    printf("\n allocated: 0x");
+    printHex(((size_t)allocated >> 24) & 0xff);
+    printHex(((size_t)allocated >> 16) & 0xff);
+    printHex(((size_t)allocated >> 8) & 0xff);
+    printHex((size_t)allocated & 0xff);
+    printf("\n------------- end test allocate --------------\n");
+
     while (1);
 }
 

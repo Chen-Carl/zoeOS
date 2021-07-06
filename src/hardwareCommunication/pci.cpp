@@ -1,4 +1,6 @@
 #include "hardwareCommunication/pci.h"
+#include "memoryManager.h"
+// #include "drivers/AMD_AM79C973.h"
 
 using namespace zoeos::common;
 using namespace zoeos::hardwareCommunication;
@@ -115,11 +117,11 @@ void PciController::checkBuses(drivers::DriverManager *driverManager, InterruptM
                     {
                         deviceConfigSpace.portBase = (uint32_t)BAR.address;
                     }
-                    Driver *driver = getDriver(deviceConfigSpace, interrupts);
-                    if (driver)
-                    {
-                        driverManager->addDriver(driver);
-                    }
+                }
+                Driver *driver = getDriver(deviceConfigSpace, interrupts);
+                if (driver)
+                {
+                    driverManager->addDriver(driver);
                 }
             }
         }
@@ -128,14 +130,20 @@ void PciController::checkBuses(drivers::DriverManager *driverManager, InterruptM
 
 Driver *PciController::getDriver(PciConfigSpace device, InterruptManager *interrupts)
 {
+    // Driver *driver = nullptr;
     switch (device.vendorID)
     {
         case 0x1022:
         {
             if (device.deviceID == 0x2000)
             {
-                printf("AMD");
-                break;
+                // driver = (AMD_AM79C973*)MemoryManager::activeMM->malloc(sizeof(AMD_AM79C973));
+                // if (driver != nullptr)
+                // {
+                //     new AMD_AM79C973(&device, interrupts);
+                // }
+                printf("AMD AM79C973");
+                // return driver;
             }
         }
         case 0x8086:

@@ -5,6 +5,8 @@
 
 namespace zoeos
 {
+    using namespace common;
+    
     class GlobalDescriptorTable
     {
     public:

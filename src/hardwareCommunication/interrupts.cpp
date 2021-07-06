@@ -2,15 +2,17 @@
 
 void printf(const char *);
 
+using namespace zoeos;
 using namespace zoeos::common;
 using namespace zoeos::hardwareCommunication;
 
 InterruptManager::GateDescriptor InterruptManager::IDT[256];
 InterruptManager *InterruptManager::activeInterruptManager = nullptr;
 
-InterruptManager::InterruptManager(uint16_t hardwareInterruptOffset_, GlobalDescriptorTable *gdt) : priCommand(0x20), priData(0x21), semiCommand(0xA0), semiData(0xA1)
+InterruptManager::InterruptManager(uint16_t hardwareInterruptOffset_, GlobalDescriptorTable *gdt, TaskManager *taskManager_) : priCommand(0x20), priData(0x21), semiCommand(0xA0), semiData(0xA1)
 {
     hardwareInterruptOffset = hardwareInterruptOffset_;
+    taskManager = taskManager_;
     const uint8_t __IDT_INTERRUPT_GATE_TYPE_ = 0xe;
     uint16_t codeSegment = (gdt->getCodeSegmentSelector()) << 3;
 
@@ -147,6 +149,12 @@ uint32_t InterruptManager::handleInt(uint8_t interruptNumber, uint32_t esp)
         msg[25] = hex[interruptNumber & 0x0f];
         printf(msg);
     }
+
+    if (interruptNumber == hardwareInterruptOffset)
+    {
+        esp = (uint32_t)taskManager->schedule((CPUState*)esp);
+    }
+    
     if (interruptNumber >= hardwareInterruptOffset && interruptNumber < hardwareInterruptOffset + 16)
     {
         priCommand.write(0x20);

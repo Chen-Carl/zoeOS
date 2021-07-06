@@ -17,9 +17,9 @@ namespace common
 
     typedef long long int64_t;
     typedef unsigned long long uint64_t;
-}
 
-using namespace common;
+    typedef uint32_t size_t;
+}
 
 }
 
