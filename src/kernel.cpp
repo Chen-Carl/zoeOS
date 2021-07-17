@@ -7,10 +7,13 @@
 #include "hardwareCommunication/pci.h"
 #include "multitask.h"
 #include "memoryManager.h"
+#include "drivers/amd_am79c973.h"
+#include "net/etherframe.h"
 
 using namespace zoeos;
 using namespace zoeos::drivers;
 using namespace zoeos::hardwareCommunication;
+using namespace zoeos::net;
 
 void printf(const char *str);
 void printHex(uint8_t);
@@ -106,6 +109,11 @@ void kernelMain(void *multiboot_structure, uint32_t magicnumber)
     PciController PCI;
     PCI.checkBuses(&drvManager, &interrupts);
     drvManager.activeAll();
+
+    AMD_AM79C973 *eth0 = (AMD_AM79C973*)(drvManager.drivers[2]);
+    EtherFrameWrapper etherFrameWrapper(eth0);
+    etherFrameWrapper.send(0xffffffffffff, 0x608, (uint8_t*)"Hello networks", 13);
+
     interrupts.activate();
 
     printf("------------- test allocate --------------\n");

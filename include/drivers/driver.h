@@ -25,9 +25,9 @@ namespace drivers
 
         void addDriver(Driver *);
         void activeAll();
+        Driver *drivers[256];
 
     private:
-        Driver *drivers[256];
         int numDrivers = 0;
     };
 }

@@ -130,11 +130,13 @@ uint32_t InterruptManager::handleInterrupt(uint8_t interruptNumber, uint32_t esp
 .extern __ZN16InterruptManager15handleInterruptEhj
 
 int_bottom:
-    pusha       # 将通用寄存器压栈
-    pushl %ds   # 压入数据段寄存器
-    pushl %es   # 压入扩展段寄存器
-    pushl %fs   # 压入标志段寄存器
-    pushl %gs   # 压入全局段寄存器
+    pushl %ebp
+    pushl %edi
+    pushl %esi
+    pushl %edx
+    pushl %ecx
+    pushl %ebx
+    pushl %eax  # 将通用寄存器压栈
 
     pushl %esp  # 压入栈指针
     push (interruptnumber)  # 压入中断向量号
@@ -144,11 +146,15 @@ int_bottom:
     # 将函数返回值作为esp
     movl %eax, %esp
     # 恢复现场
-    popl %gs
-    popl %fs
-    popl %es
-    popl %ds
-    popa
+    popl %eax
+    popl %ebx
+    popl %ecx
+    popl %edx
+    popl %esi
+    popl %edi
+    popl %ebp
+
+    add $5, %esp
 
     iret
 
@@ -232,6 +238,7 @@ InterruptManager::HandleInterruptRequest0x00()
 .global __ZN16InterruptManager26HandleInterruptRequest\num\()Ev
 __ZN16InterruptManager26HandleInterruptRequest\num\()Ev:
     movb $\num + IRQ_BASE, (interruptnumber)
+    pushl $0     # 这一步是为了将错误码压栈
     jmp int_bottom
 .endm
 

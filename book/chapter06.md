@@ -358,3 +358,124 @@ private:
 最终的目的是获取特定设备的驱动，即为函数`Driver *PciController::getDriver(PciConfigSpace device, InterruptManager *interrupts)`，并且将驱动和中断相联系。
 
 从基址寄存器中可以获取资源相关的信息，获取基址寄存器的操作为`BaseAddressRegister PciController::getBaseAddressRegister(uint8_t bus, uint8_t device, uint8_t function, uint8_t num)`。这两个函数可根据需要实现。
+
+有了基址寄存器，我们完善函数`checkBuses()`，将扫描到的驱动用`driverManager`进行管理。
+``` cpp
+void PciController::checkBuses(drivers::DriverManager *driverManager, InterruptManager *interrupts)
+{
+    for (uint16_t bus = 0; bus < 256; bus++)
+    {
+        for (uint8_t device = 0; device < 32; device++)
+        {
+            int functionNumber = isMultiFuncDevice(bus, device) ? 8 : 1;
+            for (uint8_t function = 0; function < functionNumber; function++)
+            {
+                PciConfigSpace deviceConfigSpace = getConfigSpace(bus, device, function);
+                if (deviceConfigSpace.vendorID == 0 || deviceConfigSpace.vendorID == 0xffff)
+                    continue;
+                
+                printf("PCI BUS ");
+                printHex(bus & 0xff);
+
+                printf(", DEVICE ");
+                printHex(device);
+
+                printf(", FUNCTION ");
+                printHex(function);
+
+                printf(" = VENDOR ");
+                printHex((deviceConfigSpace.vendorID & 0xff00) >> 8);
+                printHex(deviceConfigSpace.vendorID & 0xff);
+
+                printf(", DEVICE ");
+                printHex((deviceConfigSpace.deviceID & 0xff00) >> 8);
+                printHex(deviceConfigSpace.deviceID & 0xff);
+                printf("\n");
+
+                // 存在多个功能的设备也只需要添加一次
+                for (uint8_t num = 0; num < 6; num++)
+                {
+                    BaseAddressRegister BAR = getBaseAddressRegister(bus, device, function, num);
+                    if (BAR.address && (BAR.type == BaseAddressRegister::Type::IO))
+                    {
+                        deviceConfigSpace.portBase = (uint32_t)BAR.address;
+                    }
+                }
+                Driver *driver = getDriver(deviceConfigSpace, interrupts);
+                if (driver)
+                {
+                    driverManager->addDriver(driver);
+                }
+            }
+        }
+    }
+}
+```
+
+接下来实现`getDriver()`和`getBaseAddressRegister()`函数。每个设备具有对应的驱动函数，`getDriver()`就是获取驱动函数的方法。目前我们还未实现某些设备的驱动程序，因此只打印一些相关信息，对驱动程序不作出任何操作。
+
+``` cpp
+Driver *PciController::getDriver(PciConfigSpace device, InterruptManager *interrupts)
+{
+    Driver *driver;
+    switch (device.vendorID)
+    {
+        case 0x1022:
+        {
+            if (device.deviceID == 0x2000)
+            {
+                printf("AMD AM79C973");
+            }
+        }
+        case 0x8086:
+            break;
+    }
+
+    switch (device.classCode)
+    {
+        case 0x03:
+        {
+            if (device.subclass == 0x00)
+            {
+                printf("VGA");
+                break;
+            }
+            break;
+        }
+    }
+    return 0;
+}
+```
+
+基址寄存器字段可以从配置空间中读出，确定基址寄存器各个字段的值。
+``` cpp
+BaseAddressRegister PciController::getBaseAddressRegister(uint8_t bus, uint8_t device, uint8_t function, uint8_t num)
+{
+    BaseAddressRegister res;
+    uint32_t headerType = pciConfigReadWord(bus, device, function, 0x0e) & 0x7e;
+    int numOfBAR = 6 - 4 * headerType;
+    // 返回空对象
+    if (num >= numOfBAR)
+        return res;
+
+    uint32_t attribute = pciConfigReadWord(bus, device, function, 0x10 + 4 * num);
+    res.type = (attribute & 1) ? BaseAddressRegister::Type::IO : BaseAddressRegister::Type::MMIO;
+
+    if (res.type == BaseAddressRegister::Type::MMIO)
+    {
+        switch ((attribute >> 1) & 0x3)
+        {
+            case 0: 
+            case 1: 
+            case 2:
+                break;
+        }
+    }
+    else
+    {
+        res.address = (uint8_t*)(attribute & ~0x3);
+        res.prefetchable = false;
+    }
+    return res;
+}
+```

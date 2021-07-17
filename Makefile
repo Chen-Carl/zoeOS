@@ -6,12 +6,17 @@ LDPARAMS = -melf_i386 -no-pie
 objects = obj/loader.o \
 		  obj/kernel.o \
 		  obj/gdt.o \
+		  obj/memoryManager.o \
+		  obj/multitask.o \
 		  obj/hardwareCommunication/port.o  \
 		  obj/hardwareCommunication/interrupts.o \
 		  obj/hardwareCommunication/asm_interrupts.o \
+		  obj/hardwareCommunication/pci.o \
 		  obj/drivers/keyboard.o \
 		  obj/drivers/mouse.o \
-		  obj/drivers/driver.o
+		  obj/drivers/driver.o \
+		  obj/drivers/amd_am79c973.o \
+		  obj/net/etherframe.o
 
 obj/%.o: src/%.cpp
 	mkdir -p $(@D)
@@ -45,3 +50,4 @@ mykernel.iso: mykernel.bin
 .PHONY: clean
 clean:
 	rm -rf obj
+	rm mykernel.bin mykernel.iso

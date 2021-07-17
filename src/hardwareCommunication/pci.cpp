@@ -1,6 +1,6 @@
 #include "hardwareCommunication/pci.h"
 #include "memoryManager.h"
-// #include "drivers/AMD_AM79C973.h"
+#include "drivers/amd_am79c973.h"
 
 using namespace zoeos::common;
 using namespace zoeos::hardwareCommunication;
@@ -92,23 +92,23 @@ void PciController::checkBuses(drivers::DriverManager *driverManager, InterruptM
                 if (deviceConfigSpace.vendorID == 0 || deviceConfigSpace.vendorID == 0xffff)
                     continue;
                 
-                printf("PCI BUS ");
-                printHex(bus & 0xff);
+                // printf("PCI BUS ");
+                // printHex(bus & 0xff);
 
-                printf(", DEVICE ");
-                printHex(device);
+                // printf(", DEVICE ");
+                // printHex(device);
 
-                printf(", FUNCTION ");
-                printHex(function);
+                // printf(", FUNCTION ");
+                // printHex(function);
 
-                printf(" = VENDOR ");
-                printHex((deviceConfigSpace.vendorID & 0xff00) >> 8);
-                printHex(deviceConfigSpace.vendorID & 0xff);
+                // printf(" = VENDOR ");
+                // printHex((deviceConfigSpace.vendorID & 0xff00) >> 8);
+                // printHex(deviceConfigSpace.vendorID & 0xff);
 
-                printf(", DEVICE ");
-                printHex((deviceConfigSpace.deviceID & 0xff00) >> 8);
-                printHex(deviceConfigSpace.deviceID & 0xff);
-                printf("\n");
+                // printf(", DEVICE ");
+                // printHex((deviceConfigSpace.deviceID & 0xff00) >> 8);
+                // printHex(deviceConfigSpace.deviceID & 0xff);
+                // printf("\n");
 
                 for (uint8_t num = 0; num < 6; num++)
                 {
@@ -130,20 +130,25 @@ void PciController::checkBuses(drivers::DriverManager *driverManager, InterruptM
 
 Driver *PciController::getDriver(PciConfigSpace device, InterruptManager *interrupts)
 {
-    // Driver *driver = nullptr;
+    Driver *driver;
     switch (device.vendorID)
     {
         case 0x1022:
         {
             if (device.deviceID == 0x2000)
             {
-                // driver = (AMD_AM79C973*)MemoryManager::activeMM->malloc(sizeof(AMD_AM79C973));
-                // if (driver != nullptr)
-                // {
-                //     new AMD_AM79C973(&device, interrupts);
-                // }
-                printf("AMD AM79C973");
-                // return driver;
+                printf("information from AMD_AM79C973: ");
+                driver = (AMD_AM79C973*)MemoryManager::activeMM->malloc(sizeof(AMD_AM79C973));
+                if (driver != nullptr)
+                {
+                    driver = new AMD_AM79C973(&device, interrupts);
+                    printf("installed\n");
+                }
+                else
+                {
+                    printf("failed\n");
+                }
+                return driver;
             }
         }
         case 0x8086:
